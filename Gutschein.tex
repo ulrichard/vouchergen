@@ -1,0 +1,43 @@
+\documentclass[a5paper, landscape, pagenumber=no]{scrartcl}
+\special{papersize=148mm,210mm}% it is A5 paper size, I got from Wikipedia.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{url}
+\usepackage{graphicx}
+\graphicspath{ {../../logo/} {../} }
+\usepackage{background}
+\backgroundsetup{
+    contents={\includegraphics{background.jpg}},
+    angle=0,
+    scale=0.5,
+    color=black,
+    opacity=0.1,
+    position={\textwidth,-\textheight}
+}
+%\usepackage[firstpage]{draftwatermark}
+%\SetWatermarkLightness{0.2}
+%\SetWatermarkText{\includegraphics[scale=0.5, angle=-45]{background.jpg}}
+\begin{document}
+\author{Richard Ulrich}
+\title{Gutschein}
+%\maketitle
+
+
+\begin{center}
+\raggedleft
+{\huge\textbf{Gutschein}} für einen {\huge\textbf{Gleitschirm Passagierflug}}\\
+Mitfliegen kann: {\LARGE \textbf{@PassengerName@}}\\
+mit \url{www.paraeasy.ch}\\
+richi@paraeasy.ch\\
+Tel. 079 667 41 74\\
+\textbf{@FlightType@} Gutschein Nr. \textbf{@VoucherNumber@}\\
+Einzulösen bis @ValidUntil@\\
+\end{center}
+
+\includegraphics[scale=0.5]{paraeasy_logo_big.png} 
+\includegraphics[scale=0.5]{@QrInfoFile@} 
+
+
+
+\end{document}

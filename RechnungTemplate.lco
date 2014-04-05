@@ -1,0 +1,82 @@
+\ProvidesFile{RechnungTemplate.lco}[%
+	2002/07/09 v0.9a LaTeX2e unsupported letter-class-option]
+
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{ngerman}
+\usepackage[ngerman]{babel}
+\usepackage{url}
+\setkomavar{fromname}{ParaEasy}
+\newcommand\addrsecrow{Gleitschirm Tandemflüge}
+\setkomavar{fromaddress}{Richard Ulrich\\Suststrasse 5\\6440 Brunnen}
+\setkomavar{fromphone}{Tel: +41 (0)79 667 41 74}
+\newkomavar{fromwebsite}
+\setkomavar{fromwebsite}{\url{http://www.paraeasy.ch}}
+\setkomavar{fromemail}{richi@paraeasy.ch}
+\setkomavar{signature}{Richard Ulrich\\Tandem Pilot}
+\setkomavar{frombank}{Bankverbindung\\
+	   Bank:    Schwyzer Kantonalbank, 6440 Brunnen\\
+	   IBAN:    CH9200777003326541580\\
+	   BitCoin: 1ParaEzuLQaPb3piBQUApyuGuuacoWbsXX
+}
+
+\pagestyle{myheadings}
+\@addtoplength{firstfootvpos}{-5mm}
+\@setplength{firstheadvpos}{12mm}
+\@setplength{firstheadvpos}{12mm}
+\addtolength{\textheight}{15mm}
+
+
+\setkomafont{backaddress}{\scriptsize}
+\typeout{\scdefault}                                                                                                          
+\DeclareFixedFont{\fa}{\encodingdefault}{cmr}{m}{\scdefault}{20}%{12} 
+\DeclareFixedFont{\cc}{\encodingdefault}{cmr}{m}{\scdefault}{26}%{30} 
+\firsthead{
+    \resizebox{\useplength{firstheadwidth}}{!}{%
+	\begin{tabular}{c}
+	    \cc  \usekomavar{fromname}\\[4mm]
+	    \fa  \addrsecrow 
+	\end{tabular}
+    }
+}
+
+
+\firstfoot{%
+      \scriptsize{
+        \parbox{\useplength{firstfootwidth}}{ 
+          %\rule{180mm}{0.5pt} 
+          \begin{tabular}{ll}
+	  \usekomavar{fromname}\\
+%          \rechtsform\\
+	  \usekomavar{fromaddress}\\
+	    \end{tabular}\hfill
+          \begin{tabular}{cc}
+      \usekomavar{fromwebsite}\\
+	  \usekomavar{fromemail}\\
+	  \usekomavar{fromphone}%\\
+%	  \ustid
+          \end{tabular}\hfill
+          \begin{tabular}{rr}
+	  \usekomavar{frombank}\\
+	             \end{tabular}
+       }}
+}
+
+\nextfoot{%
+    \parbox{\useplength{firstfootwidth}}{
+          \begin{tabular}{ll}
+		  \usekomavar{fromname}
+	      \end{tabular}\hfill
+	      \begin{tabular}{cc}
+		  \today 
+	      \end{tabular}\hfill
+	      \begin{tabular}{rr}
+		  \thepage
+	      \end{tabular}
+    }
+}
+
+
+
+\endinput
+% vim: set filetype=tex  :EOF

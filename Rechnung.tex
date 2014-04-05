@@ -1,0 +1,29 @@
+% inspired by http://gpl.coulmann.de/scrlttr2.html
+\documentclass[RechnungTemplate]{scrlttr2}
+\setkomavar{yourref}{}
+\setkomavar{yourmail}{}
+\setkomavar{myref}{}
+\setkomavar{customer}{}
+\setkomavar{invoice}{}
+\setkomavar{date}{\today}
+\setkomavar{subject}{Rechnung}
+\begin{document}
+\begin{letter}
+{@CustomerName@\\
+@CustomerAddress@\\
+@CustomerZIP@ @CustomerCity@
+}
+\opening{Sehr geehrter Herr @CustomerName@,}
+
+Besten Dank für Ihre Buchung!\\
+\\
+@FlightCount@ x @FlightType@ a CHF @FlightPrice@\hfill \textbf{CHF @TotalPrice@}\\
+\\
+Voraussichtlicher Flugtermin: nach Absprache\\
+Zahlbar: 30 Tage netto
+
+\closing{Mit fliegerischem Gruss}
+\end{letter}
+
+\end{document}
+% vim: set spell spelllang=du :EOF
