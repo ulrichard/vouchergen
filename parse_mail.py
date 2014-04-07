@@ -93,9 +93,13 @@ class LaTex:
 
     def ToPdf(self, fileName):
         subprocess.call(['pdflatex', fileName]) 
-        fileName = os.path.basename(fileName.replace('.tex', '.pdf'))
-        pdfName = os.getcwd() + '/../pdf/' + self.values['VoucherNumber'] + '_' + fileName
-        os.rename(os.getcwd() + '/' + fileName, pdfName)
+        fileName = os.path.basename(fileName.replace('.tex', ''))
+        if fileName == 'Rechnung':
+            persName = self.values['Vor- und Nachname']
+        else:
+            persName = self.values['Name des Beschenkten']
+        pdfName = os.getcwd() + '/../pdf/' + self.values['VoucherNumber'] + '_' + fileName + '_' + persName + '.pdf'
+        os.rename(os.getcwd() + '/' + fileName + '.pdf', pdfName)
         return pdfName
 
 class Overview:
