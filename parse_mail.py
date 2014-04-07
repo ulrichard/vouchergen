@@ -1,10 +1,8 @@
 #! /usr/bin/python
 
-import email, smtplib, tidy, os, datetime, csv, gnupg
+import email, smtplib, tidy, os, datetime, csv, gnupg, subprocess
 from lxml import etree
 from email.mime.text import MIMEText
-from subprocess import call
-from os import path, environ
 
 # see http://docs.python.org/2/library/email-examples.html
 class Mailer:
@@ -94,7 +92,7 @@ class LaTex:
         return outFileName
 
     def ToPdf(self, fileName):
-        call(['pdflatex', fileName]) 
+        subprocess.call(['pdflatex', fileName]) 
         fileName = os.path.basename(fileName.replace('.tex', '.pdf'))
         pdfName = os.getcwd() + '/../pdf/' + self.values['VoucherNumber'] + '_' + fileName
         os.rename(os.getcwd() + '/' + fileName, pdfName)
@@ -104,6 +102,23 @@ class Overview:
     def __init__(self, fileName):
         self.fileName = fileName
 
+    def findNextVoucherNbr(self):
+        today = datetime.date.today()
+        pref = '%02d%02d%02d' % (today.year % 1000, today.month, today.day)
+        cnt = 0
+        try:
+            for row in csv.reader(open(self.fileName, 'rt'), delimiter=';'):
+                print row
+                if len(row) >= 6:
+                    vfld = row[0]
+                    if vfld[0:6] == pref:
+                        cnt = int(vfld[6:])
+            return pref + ('%02d' % (cnt + 1))              
+        except Exception as ex:
+            print ex
+            return pref + '01'
+        
+
     def addEntry(self, values):
         csvwriter = csv.writer(open(self.fileName, 'at'), delimiter=';')
         row = [   values['VoucherNumber']
@@ -112,25 +127,40 @@ class Overview:
                 , values['Vor- und Nachname'] + ', ' + values['Strasse und Hausnummer'] 
                     + ', ' + values['Postleitzahl'] + ' ' + values['Ort']
                 , values['FlightPrice']
+                , infos['xbtAddress']
               ]
         csvwriter.writerow(row)
 
 # test code
 if __name__ == "__main__":
+    if not os.path.exists('tmp'):
+        os.mkdir('tmp')
     # information gathering
     mailer = Mailer()
     infos = mailer.Parse("../Ihre_Anfrage.mbox")
-    voucherNumber = '2014032701' # ToDo : automatically determine
+    overview = Overview('../GutscheineUebersicht.csv')
+    voucherNumber = overview.findNextVoucherNbr()
     infos['VoucherNumber'] = str(voucherNumber)
 
+    # generate a bitcoin address
+    passTok = infos['Name des Beschenkten'].split()
+    res = subprocess.check_output(['vanitygen', '1Pe' + passTok[0][0] + passTok[len(passTok) - 1][0]])
+    res = res.split()
+    infos['xbtAddress'] = res[len(res)-3]
+    xbtPriv = res[len(res)-1]
+    gpg = gnupg.GPG(gnupghome='~/.gnupg', use_agent=True)
+    enc = gpg.encrypt(xbtPriv, 'richi@paraeasy.ch')
+    encf = open('../pdf/' + voucherNumber + '_priv.txt.gpg', 'wb')
+    encf.write(str(enc))
+    subprocess.call(['git', 'add', 'pdf/' + voucherNumber + '_priv.txt.gpg'], cwd='../')
 
     # generate the qr codes
     qrInfoString = 'http://paraeasy.ch\n' \
                  + 'GutscheinNr: ' + infos['VoucherNumber']        + '\n' \
                  + 'FlugTyp: '     + infos['FlightType']           + '\n' \
-                 + 'Passagier: '   + infos['Name des Beschenkten'] + '\n'
-    gpg = gnupg.GPG(gnupghome='~/.gnupg', use_agent=True)
-    qrInfoString = str(gpg.sign(qrInfoString, keyid=environ['GPGKEY'], clearsign=True, binary=False))
+                 + 'Passagier: '   + infos['Name des Beschenkten'] + '\n' \
+                 + 'BitCoin: '     + infos['xbtAddress'] + '\n'
+    qrInfoString = str(gpg.sign(qrInfoString, keyid=os.environ['GPGKEY'], clearsign=True, binary=False))
     qrInfoString  = qrInfoString.replace('-----', '#####')
     print qrInfoString
 #    verified = gpg.verify(qrInfoString)
@@ -138,20 +168,19 @@ if __name__ == "__main__":
 #    if not verified:
 #        raise ValueError('signature could not be verified')
     infos['QrInfoFile'] = 'tmp/qr_' + infos['VoucherNumber'] + '.png'
-    call(['qrencode', '-o', infos['QrInfoFile'], qrInfoString])
+    subprocess.call(['qrencode', '-o', infos['QrInfoFile'], qrInfoString])
 
     # prepare the documents    
     latex = LaTex(infos, 'tmp')
     files = ['Gutschein.tex', 'Rechnung.tex']
     for texFile in files:
         pdfFile = latex.ToPdf(latex.Prepare(texFile))
-        call(['evince', pdfFile])
-        call(['git', 'add', str(pdfFile)], cwd='../')
+        subprocess.call(['evince', pdfFile])
+        subprocess.call(['git', 'add', str(pdfFile)], cwd='../')
 
     # accounting
-    overview = Overview('../GutscheineUebersicht.csv')
     overview.addEntry(infos)
-    call(['git', 'add', 'GutscheineUebersicht.csv'], cwd='../')
+    subprocess.call(['git', 'add', 'GutscheineUebersicht.csv'], cwd='../')
 
     print infos
 
