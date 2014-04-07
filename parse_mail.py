@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import email, smtplib, tidy, os, datetime, csv, gnupg, subprocess
+import email, smtplib, tidy, os, datetime, csv, gnupg, subprocess, locale
 from lxml import etree
 from email.mime.text import MIMEText
 
@@ -112,7 +112,6 @@ class Overview:
         cnt = 0
         try:
             for row in csv.reader(open(self.fileName, 'rt'), delimiter=';'):
-                print row
                 if len(row) >= 6:
                     vfld = row[0]
                     if vfld[0:6] == pref:
@@ -139,6 +138,8 @@ class Overview:
 if __name__ == "__main__":
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
+    locale.setlocale(locale.LC_TIME, '')
+
     # information gathering
     mailer = Mailer()
     infos = mailer.Parse("../Ihre_Anfrage.mbox")
