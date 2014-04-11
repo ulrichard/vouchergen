@@ -82,6 +82,7 @@ class LaTex:
         ss = ss.replace('@FlightPrice@',     self.values['FlightPrice'])
         ss = ss.replace('@TotalPrice@',      str(numFlights * int(self.values['FlightPrice'])))
         ss = ss.replace('@QrInfoFile@',      self.values['QrInfoFile'])    
+        ss = ss.replace('@xbtAddress@',      self.values['xbtAddress'])    
 
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)

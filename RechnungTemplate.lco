@@ -17,7 +17,7 @@
 \setkomavar{frombank}{Bankverbindung\\
 	   Bank:    Schwyzer Kantonalbank, 6440 Brunnen\\
 	   IBAN:    CH9200777003326541580\\
-	   BitCoin: 1ParaEzuLQaPb3piBQUApyuGuuacoWbsXX
+	   BitCoin: \bitcoinaddr
 }
 
 \pagestyle{myheadings}
