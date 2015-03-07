@@ -154,7 +154,7 @@ if __name__ == "__main__":
     res = res.split()
     infos['xbtAddress'] = res[len(res)-3]
     xbtPriv = res[len(res)-1]
-    gpg = gnupg.GPG(gnupghome='~/.gnupg', use_agent=True)
+    gpg = gnupg.GPG(gnupghome=os.getenv('HOME') + '/.gnupg', use_agent=True)
     enc = gpg.encrypt(xbtPriv, 'richi@paraeasy.ch')
     encf = open('../pdf/' + voucherNumber + '_priv.txt.gpg', 'wb')
     encf.write(str(enc))
@@ -165,8 +165,12 @@ if __name__ == "__main__":
                  + 'GutscheinNr: ' + infos['VoucherNumber']        + '\n' \
                  + 'FlugTyp: '     + infos['FlightType']           + '\n' \
                  + 'Passagier: '   + infos['Name des Beschenkten'] + '\n' \
-                 + 'BitCoin: '     + infos['xbtAddress'] + '\n'
-    qrInfoString = str(gpg.sign(qrInfoString, keyid=os.environ['GPGKEY'], clearsign=True, binary=False))
+                 + 'BitCoin: '     + infos['xbtAddress'] #+ '\n'
+    print qrInfoString
+    key_id = os.environ['GPGKEY']
+    if key_id.endswith('!'):
+        key_id = key_id[:-1]
+    qrInfoString = str(gpg.sign(qrInfoString, keyid=key_id, clearsign=True, binary=False))
     qrInfoString  = qrInfoString.replace('-----', '#####')
     print qrInfoString
 #    verified = gpg.verify(qrInfoString)
@@ -174,7 +178,10 @@ if __name__ == "__main__":
 #    if not verified:
 #        raise ValueError('signature could not be verified')
     infos['QrInfoFile'] = 'tmp/qr_' + infos['VoucherNumber'] + '.png'
+    print('writing ', infos['QrInfoFile'])
     subprocess.call(['qrencode', '-o', infos['QrInfoFile'], qrInfoString])
+    if not os.path.isfile(infos['QrInfoFile']):
+        raise ValueError('qr image file not written')
 
     # prepare the documents    
     latex = LaTex(infos, 'tmp')
