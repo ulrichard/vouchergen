@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import email, smtplib, tidy, os, datetime, csv, gnupg, subprocess, locale
+import email, smtplib, tidy, os, datetime, csv, gnupg, subprocess, locale, time
 from lxml import etree
 from email.mime.text import MIMEText
 
@@ -158,6 +158,8 @@ if __name__ == "__main__":
     enc = gpg.encrypt(xbtPriv, 'richi@paraeasy.ch')
     encf = open('../pdf/' + voucherNumber + '_priv.txt.gpg', 'wb')
     encf.write(str(enc))
+    encf.close()
+    time.sleep(1)
     subprocess.call(['git', 'add', 'pdf/' + voucherNumber + '_priv.txt.gpg'], cwd='../')
 
     # generate the qr codes
@@ -165,21 +167,33 @@ if __name__ == "__main__":
                  + 'GutscheinNr: ' + infos['VoucherNumber']        + '\n' \
                  + 'FlugTyp: '     + infos['FlightType']           + '\n' \
                  + 'Passagier: '   + infos['Name des Beschenkten'] + '\n' \
-                 + 'BitCoin: '     + infos['xbtAddress'] #+ '\n'
+                 + 'BitCoin: '     + infos['xbtAddress'] + '\n'
     print qrInfoString
+    infof = open('../pdf/' + voucherNumber + '_infos.txt', 'wt')
+    infof.write(qrInfoString)
+    infof.close()
+
     key_id = os.environ['GPGKEY']
-    if key_id.endswith('!'):
-        key_id = key_id[:-1]
-    qrInfoString = str(gpg.sign(qrInfoString, keyid=key_id, clearsign=True, binary=False))
-    qrInfoString  = qrInfoString.replace('-----', '#####')
-    print qrInfoString
+    subprocess.call(['gpg', '-u', key_id, '--clearsign', 'pdf/' + voucherNumber + '_infos.txt'], cwd='../')
+    infofs = open('../pdf/' + voucherNumber + '_infos.txt.asc', 'rt')
+    qrInfoString = infofs.read()
+    infofs.close()
+
+    os.remove('../pdf/' + voucherNumber + '_infos.txt')
+    os.remove('../pdf/' + voucherNumber + '_infos.txt.asc')
+
 #    verified = gpg.verify(qrInfoString)
 #    print verified
 #    if not verified:
 #        raise ValueError('signature could not be verified')
     infos['QrInfoFile'] = 'tmp/qr_' + infos['VoucherNumber'] + '.png'
     print('writing ', infos['QrInfoFile'])
-    subprocess.call(['qrencode', '-o', infos['QrInfoFile'], qrInfoString])
+
+    p = subprocess.Popen(['qrencode', '-o', infos['QrInfoFile']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    p.stdin.write(qrInfoString)
+    p.communicate()[0]
+    p.stdin.close()
+
     if not os.path.isfile(infos['QrInfoFile']):
         raise ValueError('qr image file not written')
 
