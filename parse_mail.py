@@ -1,8 +1,18 @@
 #! /usr/bin/python
 
-import email, smtplib, tidy, os, datetime, csv, gnupg, subprocess, locale, time
+import email, smtplib, tidy, os, datetime, csv, subprocess, locale, time, inspect, sys
 from lxml import etree
 from email.mime.text import MIMEText
+
+# allow import from subdirectory
+currentDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+btcuDir = currentDir + '/bitcoinutilities'
+if btcuDir not in sys.path:
+    sys.path.append(btcuDir)
+
+import pycoin.key.BIP32Node
+import blockchain_info
+
 
 # see http://docs.python.org/2/library/email-examples.html
 class Mailer:
@@ -135,6 +145,23 @@ class Overview:
               ]
         csvwriter.writerow(row)
 
+class BitCoinAddr:
+    def __init__(self, fileName):
+        fp = open(fileName, 'rt')
+        self.xpub = fp.readline().rstrip('\n')
+        fp.close()
+
+    def GetNext(self):
+        kk = pycoin.key.BIP32Node.BIP32Node.from_hwif(self.xpub)
+        for i in range(99999):
+            keypath = "0/%d.pub" % i
+            addr = kk.subkey_for_path(keypath).address()
+            #print i, j, addr
+            ledger = blockchain_info.blockchain(addr, False)
+            if ledger.tx_count() == 0:
+                return addr
+
+
 # test code
 if __name__ == "__main__":
     if not os.path.exists('tmp'):
@@ -148,19 +175,10 @@ if __name__ == "__main__":
     voucherNumber = overview.findNextVoucherNbr()
     infos['VoucherNumber'] = str(voucherNumber)
 
-    # generate a bitcoin address
-    passTok = infos['Name des Beschenkten'].split()
-    res = subprocess.check_output(['vanitygen', '1Pe' + passTok[0][0] + passTok[len(passTok) - 1][0]])
-    res = res.split()
-    infos['xbtAddress'] = res[len(res)-3]
-    xbtPriv = res[len(res)-1]
-    gpg = gnupg.GPG(gnupghome=os.getenv('HOME') + '/.gnupg', use_agent=True)
-    enc = gpg.encrypt(xbtPriv, 'richi@paraeasy.ch')
-    encf = open('../pdf/' + voucherNumber + '_priv.txt.gpg', 'wb')
-    encf.write(str(enc))
-    encf.close()
-    time.sleep(1)
-    subprocess.call(['git', 'add', 'pdf/' + voucherNumber + '_priv.txt.gpg'], cwd='../')
+    # find a bitcoin address
+    bitCoinAddr = BitCoinAddr('../BitCoinXPub.txt').GetNext()
+    infos['xbtAddress'] = str(bitCoinAddr)
+    print('*' + infos['xbtAddress'] + '*')
 
     # generate the qr codes
     qrInfoString = 'http://paraeasy.ch\n' \
@@ -182,10 +200,6 @@ if __name__ == "__main__":
     os.remove('../pdf/' + voucherNumber + '_infos.txt')
     os.remove('../pdf/' + voucherNumber + '_infos.txt.asc')
 
-#    verified = gpg.verify(qrInfoString)
-#    print verified
-#    if not verified:
-#        raise ValueError('signature could not be verified')
     infos['QrInfoFile'] = 'tmp/qr_' + infos['VoucherNumber'] + '.png'
     print('writing ', infos['QrInfoFile'])
 

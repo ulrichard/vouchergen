@@ -1,0 +1,3 @@
+[submodule "bitcoinutilities"]
+	path = bitcoinutilities
+	url = https://github.com/ulrichard/bitcoinutilities.git
