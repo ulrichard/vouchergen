@@ -15,8 +15,8 @@
 \setkomavar{fromemail}{richi@paraeasy.ch}
 \setkomavar{signature}{Richard Ulrich\\Tandem Pilot}
 \setkomavar{frombank}{Bankverbindung\\
-	   Bank:    Schwyzer Kantonalbank, 6440 Brunnen\\
-	   IBAN:    CH9200777003326541580\\
+	   Bank:    Raiffeisen, 6440 Brunnen\\
+	   IBAN:    CH7181351000007339505\\
 	   BitCoin: \bitcoinaddr
 }
 
