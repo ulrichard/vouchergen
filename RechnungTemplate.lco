@@ -16,7 +16,7 @@
 \setkomavar{signature}{Richard Ulrich\\Tandem Pilot}
 \setkomavar{frombank}{Bankverbindung\\
 	   Bank:    Raiffeisen, 6440 Brunnen\\
-	   IBAN:    CH7181351000007339505\\
+	   IBAN:    CH2180808009571641081\\
 	   BitCoin: \bitcoinaddr
 }
 
