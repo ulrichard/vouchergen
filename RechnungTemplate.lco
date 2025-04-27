@@ -1,23 +1,22 @@
-\ProvidesFile{RechnungTemplate.lco}[%
-	2002/07/09 v0.9a LaTeX2e unsupported letter-class-option]
+\ProvidesFile{RechnungTemplate.lco}[2002/07/09 v0.9a LaTeX2e unsupported letter-class-option]
 
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
-\usepackage{ngerman}
+%\usepackage{ngerman}
 \usepackage[ngerman]{babel}
 \usepackage{url}
 \setkomavar{fromname}{ParaEasy}
 \newcommand\addrsecrow{Gleitschirm Tandemflüge}
-\setkomavar{fromaddress}{Richard Ulrich\\Suststrasse 5\\6440 Brunnen}
+\setkomavar{fromaddress}{Richard Ulrich\\Ballyweg 19a\\6440 Brunnen}
 \setkomavar{fromphone}{Tel: +41 (0)79 667 41 74}
 \newkomavar{fromwebsite}
 \setkomavar{fromwebsite}{\url{http://www.paraeasy.ch}}
 \setkomavar{fromemail}{richi@paraeasy.ch}
 \setkomavar{signature}{Richard Ulrich\\Tandem Pilot}
 \setkomavar{frombank}{Bankverbindung\\
-	   Bank:    Raiffeisen, 6440 Brunnen\\
-	   IBAN:    CH2180808009571641081\\
-	   BitCoin: \bitcoinaddr
+	   Bank:    Swissquote\\
+	   IBAN:    CH6908781000106653400\\
+	   Bitcoin: \bitcoinaddr
 }
 
 \pagestyle{myheadings}

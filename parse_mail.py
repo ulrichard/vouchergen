@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import email, smtplib, tidy, os, datetime, csv, subprocess, locale, time, inspect, sys
+import email, smtplib, os, datetime, csv, subprocess, locale, time, inspect, sys
 from lxml import etree
 from email.mime.text import MIMEText
 
@@ -10,62 +10,6 @@ btcuDir = currentDir + '/bitcoinutilities'
 if btcuDir not in sys.path:
     sys.path.append(btcuDir)
 
-import pycoin.key.BIP32Node
-import blockchain_info
-
-
-# see http://docs.python.org/2/library/email-examples.html
-class Mailer:
-    def Parse(self, mailFile):
-        fp = open(mailFile, 'rb')
-        msg = email.message_from_file(fp)
-        cont = msg.get_payload()
-        options = dict(output_xhtml=1, add_xml_decl=0, indent=1, tidy_mark=0)
-        td = tidy.parseString(cont, **options)
-        ss = str(td)
-        ss = ss[ss.find('<table '):]
-        ss = ss[:ss.find('</table>') + 8]
-        ss = ss[:ss.find('colspan')]
-        ss = ss[:ss.rfind('<tr>')]
-        ss = ss.replace('<tbody>', '');
-        ss = ss.replace('&uuml;', 'u');
-        ss = ss.replace('&auml;', 'a');
-        ss = ss.replace('&ouml;', 'o');
-        ss = ss.replace('&Auml;', 'A');
-        ss = ss.replace('&Ouml;', 'O');
-        ss = ss.replace('&uuml;', 'u');
-        ss = ss + '</table>'
-        #http://stackoverflow.com/questions/6325216/parse-html-table-to-python-list
-        table = etree.XML(ss)
-    
-        infos = {}
-
-        # direct infos
-        rows = iter(table)
-        for row in rows:
-            values = [col.text for col in row]
-            key = str(values[0]).replace('\n', '').strip()
-            val = str(values[2]).replace('\n', '').strip()
-            infos[key] = val
-
-        # processed infos
-        flightTypeAndPrice = infos['Bitte wahlen Sie Ihren Flug aus']
-        flights = {
-                    'Schnupperflug fur 160.00 CHF'       : ['Schnupperflug', '160'],
-                    'Genussflug fur 200.00 CHF'          : ['Genussflug',    '200'],
-                    'Panoramaflug fur 250.00 CHF'        : ['Panoramaflug',  '250'],
-                    'Pilot fur einen Tag fur 520.00 CHF' : ['Pilot 4 a day', '520'],
-                  }
-        infos['FlightType']  = flights[flightTypeAndPrice][0]
-        infos['FlightPrice'] = flights[flightTypeAndPrice][1]
-
-        #meta infos
-        infos['Subject'] = msg['Subject']
-        
-        return infos
-
-    def Send(self):
-      msg = MIMEText("Hallo")  
 
 class LaTex:
     def __init__(self, values, directory):
@@ -129,7 +73,7 @@ class Overview:
                         cnt = int(vfld[6:])
             return pref + ('%02d' % (cnt + 1))              
         except Exception as ex:
-            print ex
+            print(ex)
             return pref + '01'
         
 
@@ -145,22 +89,6 @@ class Overview:
               ]
         csvwriter.writerow(row)
 
-class BitCoinAddr:
-    def __init__(self, fileName):
-        fp = open(fileName, 'rt')
-        self.xpub = fp.readline().rstrip('\n')
-        fp.close()
-
-    def GetNext(self):
-        kk = pycoin.key.BIP32Node.BIP32Node.from_hwif(self.xpub)
-        for i in range(99999):
-            keypath = "0/%d.pub" % i
-            addr = kk.subkey_for_path(keypath).address()
-            #print i, j, addr
-            ledger = blockchain_info.blockchain(addr, False)
-            if ledger.tx_count() == 0:
-                return addr
-
 
 # test code
 if __name__ == "__main__":
@@ -169,16 +97,31 @@ if __name__ == "__main__":
     locale.setlocale(locale.LC_TIME, '')
 
     # information gathering
-    mailer = Mailer()
-    infos = mailer.Parse("../Ihre_Anfrage.mbox")
+    #mailer = Mailer()
+    #infos = mailer.Parse("../Ihre_Anfrage.mbox")
+
+    infos = {}
+    infos['Vor- und Nachname'] = "xx"
+    infos['Strasse und Hausnummer'] = "xx"
+    infos['Postleitzahl'] = "xx"
+    infos['Ort'] = "xx"
+    infos['Ihre E-Mail'] = "xx@xx.ch"
+    infos['Rufnummer (fur Ruckfragen)'] = "xx"
+    infos['Name des Beschenkten'] = "xx"
+    #infos['VoucherNumber']
+    infos['FlightType'] = "Genussflug"
+    infos['FlightPrice'] = "200"
+    #infos['QrInfoFile'])
+    infos['xbtAddress'] = "xx"
+
     overview = Overview('../GutscheineUebersicht.csv')
     voucherNumber = overview.findNextVoucherNbr()
     infos['VoucherNumber'] = str(voucherNumber)
 
     # find a bitcoin address
-    bitCoinAddr = BitCoinAddr('../BitCoinXPub.txt').GetNext()
-    infos['xbtAddress'] = str(bitCoinAddr)
-    print('*' + infos['xbtAddress'] + '*')
+    #bitCoinAddr = BitCoinAddr('../BitCoinXPub.txt').GetNext()
+    #infos['xbtAddress'] = str(bitCoinAddr)
+    #print('*' + infos['xbtAddress'] + '*')
 
     # generate the qr codes
     qrInfoString = 'http://paraeasy.ch\n' \
@@ -186,7 +129,7 @@ if __name__ == "__main__":
                  + 'FlugTyp: '     + infos['FlightType']           + '\n' \
                  + 'Passagier: '   + infos['Name des Beschenkten'] + '\n' \
                  + 'BitCoin: '     + infos['xbtAddress'] + '\n'
-    print qrInfoString
+    print(qrInfoString)
     infof = open('../pdf/' + voucherNumber + '_infos.txt', 'wt')
     infof.write(qrInfoString)
     infof.close()
@@ -204,7 +147,7 @@ if __name__ == "__main__":
     print('writing ', infos['QrInfoFile'])
 
     p = subprocess.Popen(['qrencode', '-o', infos['QrInfoFile']], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-    p.stdin.write(qrInfoString)
+    p.stdin.write(qrInfoString.encode())
     p.communicate()[0]
     p.stdin.close()
 
@@ -223,5 +166,5 @@ if __name__ == "__main__":
     overview.addEntry(infos)
     subprocess.call(['git', 'add', 'GutscheineUebersicht.csv'], cwd='../')
 
-    print infos
+    print(infos)
 
